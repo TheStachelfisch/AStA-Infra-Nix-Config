@@ -17,7 +17,7 @@
           keys = map (k: k.path) (builtins.filter isEd25519 config.services.openssh.hostKeys);
         in
         {
-          defaultSopsFile = "${self.inputs.secrets}/user-secrets.yaml";
+          defaultSopsFile = "${self.inputs.secrets}/host-secrets.yaml";
           defaultSopsFormat = "yaml";
           age = {
             sshKeyPaths = keys;
