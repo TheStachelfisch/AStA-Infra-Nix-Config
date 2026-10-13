@@ -1,0 +1,1 @@
+# Hetzner AStA NixOS Config
