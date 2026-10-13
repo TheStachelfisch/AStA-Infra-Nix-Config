@@ -10,7 +10,7 @@
         fynn
       ];
 
-      home-manager.users.ben = {
+      home-manager.users.fynn = {
         imports = with inputs.self.modules.homeManager; [
           fynn
         ];
