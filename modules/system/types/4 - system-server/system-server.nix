@@ -13,6 +13,7 @@
         system-cli
 
         auto-upgrade
+        acme
       ];
 
       time.timeZone = "UTC";

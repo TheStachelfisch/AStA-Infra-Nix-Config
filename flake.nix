@@ -16,6 +16,7 @@
     };
     import-tree.url = "github:denful/import-tree";
     nixpkgs.url = "github:nixos/nixpkgs/nixos-26.05";
+    nixpkgs-stalwart.url = "github:0x57e11a/nixpkgs/9b15e1f0c8e848e0ac11d8c0ac2f6b3d7027799c";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
     packages = {
       url = "path:./pkgs/by-name";

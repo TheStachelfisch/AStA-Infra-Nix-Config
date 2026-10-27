@@ -3,9 +3,15 @@
     security.acme = {
       acceptTerms = true;
       defaults = {
-        email = "me@thestachelfisch.dev";
+        email = "vorstand@asta-hs-mainz.de";
         dnsProvider = "cloudflare";
         environmentFile = config.sops.secrets."cloudflare/dns_api_token".path;
+      };
+
+      certs."asta-hs-mainz.de" = {
+        extraDomainNames = [ "*.asta-hs-mainz.de" ];
+        group = "nginx";
+        reloadServices = [ "nginx.service" ];
       };
     };
 
