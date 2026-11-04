@@ -32,10 +32,10 @@
       services.stalwart = {
         enable = true;
         stateVersion = "26.11";
-        package = pkgs.unstable.stalwart_0_16;
+        package = pkgs.unstable.stalwart_1_0;
         openFirewall = false; # TODO: Open port manually
 
-        url = "https://mail.${domain}";
+        url = "https://mail.${domain}"; # TODO: Uncomment for public release
         admin = {
           enable = true;
           username = "admin";
@@ -57,7 +57,6 @@
                 defaultDomainId = "#main-domain";
                 defaultCertificateId = "#main-certificate";
               };
-              Http.useXForwarded = true;
 
               BlobStore = variant "FileSystem" {
                 path = "/data/blob-storage/stalwart-blobs";
@@ -71,9 +70,9 @@
                 directoryId = "#lldap-directory";
               };
 
-              Imap = {
+              Http.usePermissiveCors = true;
 
-              };
+              DnsResolver = variant "System" { };
             };
             objects = {
               Tracer = {
@@ -93,37 +92,37 @@
                     name = "management";
                     protocol = "http";
                     bind = [ "[::]:8080" ];
-                    tlsImplicit = false;
+                    implicitTls = false;
                   };
                   listener-smtp-relay = {
                     name = "relay";
                     protocol = "smtp";
                     bind = [ "[::]:25" ];
-                    tlsImplicit = false;
+                    implicitTls = false;
                   };
                   listener-smtp-submission = {
                     name = "submission";
                     protocol = "smtp";
                     bind = [ "[::]:465" ];
-                    tlsImplicit = true;
+                    implicitTls = true;
                   };
                   listener-imap = {
                     name = "imap";
                     protocol = "imap";
                     bind = [ "[::]:993" ];
-                    tlsImplicit = true;
+                    implicitTls = true;
                   };
                   listener-pop3 = {
                     name = "pop3";
                     protocol = "pop3";
                     bind = [ "[::]:995" ];
-                    tlsImplicit = true;
+                    implicitTls = true;
                   };
                   listener-sieve = {
                     name = "sieve";
                     protocol = "manageSieve";
                     bind = [ "[::]:4190" ];
-                    tlsImplicit = false;
+                    implicitTls = false;
                   };
                 };
               };
@@ -133,7 +132,7 @@
                 objects = {
                   main-domain = {
                     name = domain;
-                    isEnabled = true;
+                    enable = true;
                     dnsManagement = variant "Manual" { };
                     subAddressing = variant "Enabled" { };
                     certificateManagement = variant "Manual" { };
@@ -185,17 +184,23 @@
                     };
 
                     filterLogin = "(&(objectClass=person)(|(uid=?)(mail=?)))";
-                    filterMailbox = "(|(&(objectClass=person)(uid=?))(&(objectClass=groupOfUniqueNames)(|(cn=?)(mail=?))))";
+                    filterRecipient = "(|(&(objectClass=person)(uid=?))(&(objectClass=groupOfUniqueNames)(|(cn=?)(mail=?))))";
                     groupClass = "groupOfUniqueNames";
                     filterMemberOf = "(&(objectClass=groupOfUniqueNames)(member=?))";
 
+                    attrDescription = [ "displayName" ];
                     attrEmail = [ "mail" ];
+                    attrEmailAlias = [ ];
+                    attrSecret = [ ];
+                    attrSecretChanged = [ ];
                   };
                 };
               };
             };
           };
       };
+
+      systemd.services.stalwart.serviceConfig.ReadWritePaths = [ "/data/blob-storage/stalwart-blobs" ];
 
       # For ACME certificate
       users.users.${config.services.stalwart.user}.extraGroups = [ "nginx" ];
@@ -210,6 +215,19 @@
         virtualHosts."mail.${domain}" = {
           forceSSL = true;
           useACMEHost = domain;
+
+          locations."/" = {
+            proxyPass = "http://127.0.0.1:8080";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+              proxy_set_header X-Forwarded-Proto $scheme;
+              proxy_set_header X-Forwarded-Host $http_host;
+              proxy_set_header X-Forwarded-URI $request_uri;
+              proxy_set_header X-Forwarded-Ssl on;
+              proxy_set_header X-Forwarded-For $remote_addr;
+            '';
+          };
         };
       };
 
