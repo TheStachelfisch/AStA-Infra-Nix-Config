@@ -9,7 +9,10 @@
       };
 
       certs."asta-hs-mainz.de" = {
-        extraDomainNames = [ "*.asta-hs-mainz.de" ];
+        extraDomainNames = [
+          "*.asta-hs-mainz.de"
+          "*.mail.asta-hs-mainz.de"
+        ];
         group = "nginx";
         reloadServices = [ "nginx.service" ];
       };

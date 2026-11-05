@@ -54,7 +54,7 @@
             singletons = {
               SystemSettings = {
                 defaultHostname = "mail.${domain}";
-                defaultDomainId = "#main-domain";
+                defaultDomainId = "#testing-domain";
                 defaultCertificateId = "#main-certificate";
               };
 
@@ -73,6 +73,17 @@
               Http.usePermissiveCors = true;
 
               DnsResolver = variant "System" { };
+              MtaSts = {
+                mode = "enforce";
+              };
+
+              Search = {
+                defaultLanguage = "de-DE";
+              };
+
+              SpamPyzor = {
+                enable = true;
+              };
             };
             objects = {
               Tracer = {
@@ -80,7 +91,7 @@
                 match = [ "@type" ];
                 objects = {
                   stdout = variant "Stdout" {
-                    level = "trace";
+                    level = "warn";
                   };
                 };
               };
@@ -132,7 +143,7 @@
                 objects = {
                   main-domain = {
                     name = domain;
-                    enable = true;
+                    enable = false;
                     dnsManagement = variant "Manual" { };
                     subAddressing = variant "Enabled" { };
                     certificateManagement = variant "Manual" { };
@@ -147,6 +158,39 @@
                         deleteAfter = days2millis 30;
                       }
                     );
+                  };
+                  testing-domain = {
+                    name = "mail.${domain}";
+                    enable = true;
+                    dnsManagement = variant "Automatic" {
+                      dnsServerId = "#cloudflare-dns";
+                      origin = "asta-hs-mainz.de";
+                    };
+                    subAddressing = variant "Enabled" { };
+                    certificateManagement = variant "Manual" { };
+                    dkimManagement = variant "Automatic" (
+                      let
+                        days2millis = days: days * 24 * 60 * 60 * 1000;
+                      in
+                      {
+                        selectorTemplate = "v{version}-{algorithm}-{date-%Y%m%d}";
+                        rotateAfter = days2millis 90;
+                        retireAfter = days2millis 7;
+                        deleteAfter = days2millis 30;
+                      }
+                    );
+                  };
+                };
+              };
+              DnsServer = {
+                reconcile = true;
+                match = [ "@type" ];
+                objects = {
+                  cloudflare-dns = variant "Cloudflare" {
+                    secret = variant "File" {
+                      filePath = config.sops.secrets."stalwart/cloudflare_dns_api_key".path;
+                    };
+                    description = "Cloudflare DNS asta-hs-mainz.de";
                   };
                 };
               };
@@ -184,7 +228,7 @@
                     };
 
                     filterLogin = "(&(objectClass=person)(|(uid=?)(mail=?)))";
-                    filterRecipient = "(|(&(objectClass=person)(uid=?))(&(objectClass=groupOfUniqueNames)(|(cn=?)(mail=?))))";
+                    filterRecipient = "(|(&(objectClass=person)(|(uid=?)(mail=?)))(&(objectClass=groupOfUniqueNames)(|(cn=?)(mail=?))))";
                     groupClass = "groupOfUniqueNames";
                     filterMemberOf = "(&(objectClass=groupOfUniqueNames)(member=?))";
 
@@ -200,6 +244,14 @@
           };
       };
 
+      networking.firewall.allowedTCPPorts = [
+        25
+        465
+        993
+        995
+        4190
+      ];
+
       systemd.services.stalwart.serviceConfig.ReadWritePaths = [ "/data/blob-storage/stalwart-blobs" ];
 
       # For ACME certificate
@@ -210,26 +262,34 @@
         "stalwart-provision.service"
       ];
 
-      services.nginx = {
-        enable = true;
-        virtualHosts."mail.${domain}" = {
-          forceSSL = true;
-          useACMEHost = domain;
+      services.nginx =
+        let
+          commonHostConfig = {
+            forceSSL = true;
+            useACMEHost = domain;
 
-          locations."/" = {
-            proxyPass = "http://127.0.0.1:8080";
-            proxyWebsockets = true;
-            extraConfig = ''
-              proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
-              proxy_set_header X-Forwarded-Proto $scheme;
-              proxy_set_header X-Forwarded-Host $http_host;
-              proxy_set_header X-Forwarded-URI $request_uri;
-              proxy_set_header X-Forwarded-Ssl on;
-              proxy_set_header X-Forwarded-For $remote_addr;
-            '';
+            locations."/" = {
+              proxyPass = "http://127.0.0.1:8080";
+              proxyWebsockets = true;
+              extraConfig = ''
+                proxy_set_header X-Original-URL $scheme://$http_host$request_uri;
+                proxy_set_header X-Forwarded-Proto $scheme;
+                proxy_set_header X-Forwarded-Host $http_host;
+                proxy_set_header X-Forwarded-URI $request_uri;
+                proxy_set_header X-Forwarded-Ssl on;
+                proxy_set_header X-Forwarded-For $remote_addr;
+              '';
+            };
           };
+        in
+        {
+          enable = true;
+          virtualHosts."mail.${domain}" = commonHostConfig;
+          virtualHosts."mta-sts.mail.${domain}" = commonHostConfig;
+          virtualHosts."autodiscover.mail.${domain}" = commonHostConfig;
+          virtualHosts."autoconfig.mail.${domain}" = commonHostConfig;
+          virtualHosts."ua-auto-config.mail.${domain}" = commonHostConfig;
         };
-      };
 
       sops.secrets = {
         "stalwart/lldap_admin_password" = {
@@ -243,6 +303,7 @@
         };
 
         "stalwart/admin_password" = mkStalwartSecret;
+        "stalwart/cloudflare_dns_api_key" = mkStalwartSecret;
       };
     };
 }

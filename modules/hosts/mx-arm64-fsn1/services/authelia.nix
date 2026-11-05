@@ -29,7 +29,7 @@
         environmentVariables = {
           AUTHELIA_AUTHENTICATION_BACKEND_LDAP_PASSWORD_FILE =
             config.sops.secrets."authelia/lldap_bind_password".path;
-          #AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.sops.secrets."authelia/smtp_password".path;
+          AUTHELIA_NOTIFIER_SMTP_PASSWORD_FILE = config.sops.secrets."authelia/smtp_password".path;
         };
 
         settings = {
@@ -120,7 +120,17 @@
           # Notifications
           notifier = {
             disable_startup_check = false;
-            filesystem.filename = "/var/lib/authelia-main/notifications.txt";
+            smtp = {
+              address = "submissions://mail.asta-hs-mainz.de:465";
+              timeout = "15s";
+
+              # Absenderadresse und Anzeigename
+              sender = "AStA SSO <noreply@mail.asta-hs-mainz.de>";
+              identifier = "auth.asta-hs-mainz.de";
+              subject = "[AStA SSO] {title}";
+
+              username = "noreply@mail.asta-hs-mainz.de";
+            };
           };
 
           # Identity Providers
@@ -201,6 +211,7 @@
         "authelia/storage_encryption_key" = mkAutheliaSecret;
         "authelia/oidc_hmac_secret" = mkAutheliaSecret;
         "authelia/oidc_issuer_private_key" = mkAutheliaSecret;
+        "authelia/smtp_password" = mkAutheliaSecret;
 
         "authelia/lldap_bind_password" = {
           key = "lldap/admin_password";

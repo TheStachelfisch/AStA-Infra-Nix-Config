@@ -16,8 +16,12 @@
       services.bulwark = {
         enable = true;
         package = pkgs.unstable.bulwark;
+        admin = {
+          passwordHashFile = config.sops.secrets."bulwark/admin_password".path;
+        };
         settings = {
           jmapServerUrl = "https://mail.${domain}";
+          sessionSecretFile = config.sops.secrets."bulwark/session_secret".path;
         };
       };
 
@@ -40,6 +44,19 @@
               proxy_set_header X-Forwarded-For $remote_addr;
             '';
           };
+        };
+      };
+
+      sops.secrets = {
+        "bulwark/admin_password" = {
+          owner = "bulwark";
+          group = "bulwark";
+          restartUnits = [ "bulwark.service" ];
+        };
+        "bulwark/session_secret" = {
+          owner = "bulwark";
+          group = "bulwark";
+          restartUnits = [ "bulwark.service" ];
         };
       };
     };
