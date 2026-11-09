@@ -58,6 +58,14 @@
                 defaultCertificateId = "#main-certificate";
               };
 
+              Cache = {
+                directoryRecipientsTtl = 60000;
+              };
+
+              DataRetention = {
+                expungeTrashAfter = 2592000000;
+              };
+
               BlobStore = variant "FileSystem" {
                 path = "/data/blob-storage/stalwart-blobs";
               };

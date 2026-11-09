@@ -105,19 +105,35 @@
         "type": "github"
       }
     },
+    "nixpkgs-bulwark-update": {
+      "locked": {
+        "lastModified": 1794130668,
+        "narHash": "sha256-8QhLU32DG/YN/rqbOlQ0QzUq75TtretlB8SA2KbGaU4=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "dc4954656e01d28d8e53bad603df349dcdf98155",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "pull/574920/head",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nixpkgs-stalwart": {
       "locked": {
         "lastModified": 1791934170,
         "narHash": "sha256-6rZmYu2isfA/gLWt13whYOFfq86fY9sVHMbSf/aN2YE=",
-        "owner": "0x57e11a",
+        "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "9b15e1f0c8e848e0ac11d8c0ac2f6b3d7027799c",
         "type": "github"
       },
       "original": {
-        "owner": "0x57e11a",
+        "owner": "NixOS",
+        "ref": "pull/552103/head",
         "repo": "nixpkgs",
-        "rev": "9b15e1f0c8e848e0ac11d8c0ac2f6b3d7027799c",
         "type": "github"
       }
     },
@@ -188,6 +204,7 @@
         "home-manager": "home-manager",
         "import-tree": "import-tree",
         "nixpkgs": "nixpkgs_2",
+        "nixpkgs-bulwark-update": "nixpkgs-bulwark-update",
         "nixpkgs-stalwart": "nixpkgs-stalwart",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "packages": "packages",
