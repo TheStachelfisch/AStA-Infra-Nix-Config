@@ -19,6 +19,7 @@
     nixpkgs-bulwark-update.url = "github:NixOS/nixpkgs/pull/574920/head";
     nixpkgs-stalwart.url = "github:NixOS/nixpkgs/pull/552103/head";
     nixpkgs-unstable.url = "github:nixos/nixpkgs/nixos-unstable";
+    nixpkgs-unstable-small.url = "github:nixos/nixpkgs/nixos-unstable-small";
     packages = {
       url = "path:./pkgs/by-name";
       flake = false;

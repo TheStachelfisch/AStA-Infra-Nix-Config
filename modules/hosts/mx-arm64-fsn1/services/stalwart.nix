@@ -33,9 +33,9 @@
         enable = true;
         stateVersion = "26.11";
         package = pkgs.unstable.stalwart_1_0;
-        openFirewall = false; # TODO: Open port manually
+        openFirewall = false;
 
-        url = "https://mail.${domain}"; # TODO: Uncomment for public release
+        url = "https://mail.${domain}";
         admin = {
           enable = true;
           username = "admin";
@@ -50,7 +50,7 @@
             enable = true;
             reloadSettings = true;
             package = pkgs.unstable.stalwart-cli;
-            url = "http://127.0.0.1:8080/";
+            urls = [ "http://127.0.0.1:8080/" ];
             singletons = {
               SystemSettings = {
                 defaultHostname = "mail.${domain}";
